@@ -28,12 +28,9 @@
   // NAVBAR — SCROLL EFFECT
   // ========================================
   const navbar = document.getElementById('navbar');
-  let lastScroll = 0;
 
   const handleNavScroll = () => {
-    const scrollY = window.scrollY;
-    navbar.classList.toggle('scrolled', scrollY > 50);
-    lastScroll = scrollY;
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
   };
 
   window.addEventListener('scroll', handleNavScroll, { passive: true });
@@ -50,12 +47,9 @@
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-
           const id = entry.target.id;
           navLinks.forEach((link) => {
-            const href = link.getAttribute('href');
-            const isActive = href === `#${id}`;
-            link.classList.toggle('active', isActive);
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
           });
         });
       },
@@ -73,15 +67,14 @@
 
   if (menuToggle && mobileMenu) {
     menuToggle.addEventListener('click', () => {
-      const isOpen = mobileMenu.classList.toggle('hidden') === false;
+      const isOpen = mobileMenu.classList.toggle('open');
       menuToggle.classList.toggle('open', isOpen);
       menuToggle.setAttribute('aria-expanded', String(isOpen));
     });
 
-    // Close menu when a link is clicked
     mobileMenu.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('open');
         menuToggle.classList.remove('open');
         menuToggle.setAttribute('aria-expanded', 'false');
       });
@@ -91,15 +84,24 @@
   // ========================================
   // SMOOTH SCROLL (fallback for Safari)
   // ========================================
+  function getNavbarHeight() {
+    return document.getElementById('navbar').getBoundingClientRect().height;
+  }
+
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener('click', (e) => {
       const targetId = anchor.getAttribute('href');
       if (targetId === '#') return;
-      const target = document.querySelector(targetId);
-      if (!target) return;
+      const section = document.querySelector(targetId);
+      if (!section) return;
 
       e.preventDefault();
-      target.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth' });
+      const heading = section.querySelector('h1, h2, h3, .section-label, .section-title');
+      const target = heading || section;
+      const navbarH = getNavbarHeight();
+      const gap = 20;
+      const y = target.getBoundingClientRect().top + window.scrollY - navbarH - gap;
+      window.scrollTo({ top: Math.max(0, y), behavior: prefersReduced ? 'auto' : 'smooth' });
     });
   });
 })();
